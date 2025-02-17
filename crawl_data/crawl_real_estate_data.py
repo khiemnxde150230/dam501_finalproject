@@ -48,7 +48,7 @@ class RealEstateCrawler:
         return float(area)
 
     def fetch_page_data(self, page_number):
-        url = f"{self.base_url}/p{page_number}"
+        url = f"{self.base_url}/p{page_number}?avrs=1"
         print(f"Đang crawl trang: {url}")
         self.driver.get(url)
         time.sleep(randint(3, 6))  # tránh bị chặn
