@@ -1,0 +1,27 @@
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1;
+}
+
+.navbar {
+    background-color: #cb4b1d !important;
+}
+
+.navbar .navbar-brand {
+    color: white !important;
+    font-weight: bold;
+}
+
+.footer {
+    background: #cb4b1d;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    margin-top: auto;
+    font-weight: bold;
+}

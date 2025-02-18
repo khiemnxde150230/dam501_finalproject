@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Phân tích bất động sản{% endblock %}
+
+{% block content %}
+    <h1 class="text-center my-4">Group 1 - PPR501</h1>
+    <h1 class="text-center my-4">Phân tích dữ liệu căn hộ tại địa bàn Đà Nẵng trên mogi.vn</h1>
+    <h2 class="text-center my-4">Chọn một phân tích</h2>
+
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
+                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
+                        <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
+                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
+                        <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">📊 Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
+                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
+                        <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
