@@ -93,7 +93,7 @@ renting_plot = plot_data(renting_stats)
 
 @app.route('/')
 def index():
-    return render_template('index.html', 
+    return render_template('index3.html', 
                            selling_stats=selling_stats, 
                            renting_stats=renting_stats, 
                            selling_plot=selling_plot, 
