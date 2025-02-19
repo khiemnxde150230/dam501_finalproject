@@ -19,13 +19,16 @@ class RealEstateCrawler:
                 price REAL,
                 area REAL,
                 location TEXT,
+                detailed_address TEXT,
                 bedrooms INTEGER,
                 bathrooms INTEGER,
                 posted_time TEXT,
-                is_selling BOOLEAN
+                is_selling BOOLEAN,
+                real_estate_code TEXT
             );
         """)
         self.conn.commit()
+
 
     def convert_price_to_number(self, price):
         price = price.lower().strip()
@@ -42,7 +45,7 @@ class RealEstateCrawler:
             triệu = float(re.search(r'(\d+)', price).group(1))
             price = triệu * 1_000_000
         else:
-            return 0  # giá ảo, return 0 để lọc bỏ
+            return 0
         return price
 
     def convert_posted_time(self, posted_time):
@@ -53,6 +56,29 @@ class RealEstateCrawler:
             return (datetime.now() - timedelta(days=1)).strftime("%d-%m-%Y")
         else:
             return posted_time.replace("/", "-")
+
+    def fetch_details(self, detail_url):
+        response = requests.get(detail_url)
+        if response.status_code != 200:
+            print(f"Lỗi khi lấy dữ liệu chi tiết từ {detail_url}: {response.status_code}")
+            return '', ''
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        property_code = ''
+        info_attrs = soup.find("div", class_="info-attrs")
+        if info_attrs:
+            for info_attr in info_attrs.find_all("div", class_="info-attr"):
+                label = info_attr.find("span", text="Mã BĐS")
+                if label:
+                    property_code = info_attr.find_all("span")[1].text.strip()
+                    break
+
+        address_tag = soup.find("div", class_="address")
+        detailed_address = address_tag.text.strip() if address_tag else ''
+
+        return property_code, detailed_address
+
 
     def fetch_page_data(self, url, is_selling):
         print(f"Đang crawl trang: {url}")
@@ -84,8 +110,11 @@ class RealEstateCrawler:
                 if bedrooms > 5 or price < 1_000_000 or area < 10 or (is_selling and price < 100_000_000): #lọc bỏ mấy bài vô lý
                     continue
 
-                print(f"- {title} | {price} | {area} | {location} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'}")
-                self.data.append([title, price, area, location, bedrooms, bathrooms, posted_time, is_selling])
+                detail_url = listing.find("a", class_="link-overlay")["href"]
+                property_code, detailed_address = self.fetch_details(detail_url)
+
+                print(f"- {title} | {price} | {area} | {location} | {detailed_address} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'} | Mã BĐS: {property_code}")
+                self.data.append([title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, property_code])
             except (AttributeError, IndexError):
                 continue
 
@@ -94,13 +123,14 @@ class RealEstateCrawler:
     def save_to_database(self):
         self.create_table()
         for row in self.data:
-            row[6] = datetime.strptime(row[6], "%d-%m-%Y").strftime("%d-%m-%Y")
+            row[7] = datetime.strptime(row[7], "%d-%m-%Y").strftime("%d-%m-%Y")
             self.cursor.execute(f"""
-                INSERT INTO danang_apartments (title, price, area, location, bedrooms, bathrooms, posted_time, is_selling)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO danang_apartments (title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, real_estate_code)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, row)
         self.conn.commit()
         print("Dữ liệu đã được lưu vào bảng danang_apartments trong cơ sở dữ liệu.")
+
 
     def start_crawling(self, base_url):
         page_number = 1
