@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Thống kê diện tích các căn hộ theo quận{% endblock %}
+
+{% block content %}
+    <h2 class="text-center my-4">Thống kê diện tích các căn hộ theo quận</h2>
+
+    <!-- Dropdown to select Renting/Selling -->
+    <div class="text-center my-3">
+        <label for="chartType">Chọn loại hình:</label>
+        <select id="chartType" class="form-select mx-auto" style="width: 200px;">
+            <option value="selling" selected>Bán</option>
+            <option value="renting">Cho thuê</option>
+        </select>
+    </div>
+
+    <!-- Selling Chart (default) -->
+    <canvas id="apartment_area_selling_chart"></canvas>
+    
+    <!-- Renting Chart (hidden initially) -->
+    <canvas id="apartment_area_renting_chart" style="display: none;"></canvas>
+
+    <script src="../static/js/apartment_area_selling_chart.js"></script>
+    <script src="../static/js/apartment_area_renting_chart.js" defer></script>
+
+    <script>
+        document.getElementById("chartType").addEventListener("change", function() {
+            const selected = this.value;
+            document.getElementById("apartment_area_selling_chart").style.display = (selected === "selling") ? "block" : "none";
+            document.getElementById("apartment_area_renting_chart").style.display = (selected === "renting") ? "block" : "none";
+        });
+    </script>
+{% endblock %}
