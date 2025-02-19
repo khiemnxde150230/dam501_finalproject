@@ -14,5 +14,15 @@ class Analysis:
         """
         return self.db.query(query, (is_selling,))
 
+    def get_avg_price_data(self):
+        query = """
+        SELECT posted_time AS year_month, bedrooms, AVG(price) as avg_price
+        FROM danang_apartments
+        GROUP BY year_month, bedrooms
+        ORDER BY year_month DESC;
+        """
+        return self.db.query(query)
+
     def close(self):
         self.db.close()
+
