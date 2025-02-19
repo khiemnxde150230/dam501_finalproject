@@ -4,15 +4,24 @@ class Analysis:
     def __init__(self):
         self.db = Database()
 
-    def get_apartment_demand(self, is_selling):
+    def get_apartment_demand(self, is_selling, year=None, month=None):
         query = """
         SELECT location, COUNT(*) as num_listings
         FROM danang_apartments
         WHERE is_selling = ?
-        GROUP BY location
-        ORDER BY num_listings DESC;
         """
-        return self.db.query(query, (is_selling,))
+        params = [is_selling]
+
+        if year:
+            query += " AND substr(posted_time, 7, 4) = ?"
+            params.append(str(year))
+
+        if month:
+            query += " AND substr(posted_time, 4, 2) = ?"
+            params.append(f"{int(month):02d}")
+
+        query += " GROUP BY location ORDER BY num_listings DESC;"
+        return self.db.query(query, tuple(params))
     
     def get_apartment_area_selling(self):
         query = """

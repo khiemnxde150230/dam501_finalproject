@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 from services.analysis import Analysis
 
 app = Flask(__name__)
@@ -17,9 +17,12 @@ def apartment_area():
 
 @app.route('/api/apartment-demand')
 def api_apartment_demand():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+
     analysis = Analysis()
-    data_sale = analysis.get_apartment_demand(is_selling=1)
-    data_rent = analysis.get_apartment_demand(is_selling=0)
+    data_sale = analysis.get_apartment_demand(is_selling=1, year=year, month=month)
+    data_rent = analysis.get_apartment_demand(is_selling=0, year=year, month=month)
     analysis.close()
 
     return jsonify({
