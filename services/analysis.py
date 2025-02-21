@@ -59,13 +59,32 @@ class Analysis:
         """
         return self.db.query(query)
 
-    def get_avg_price_data(self):
+    def get_avg_price_data(self, is_selling, year=None, month=None, district=None):
         query = """
-        SELECT posted_time AS year_month, bedrooms, AVG(price) as avg_price
+        SELECT posted_time AS year_month, AVG(price / area) as avg_price_per_sqm
         FROM danang_apartments
-        GROUP BY year_month, bedrooms
-        ORDER BY year_month DESC;
+        WHERE is_selling = ? AND area > 0
         """
+        params = [is_selling]
+
+        if district:
+            query += " AND district = ?"
+            params.append(str(district))
+
+        if year:
+            query += " AND substr(posted_time, 7, 4) = ?"
+            params.append(str(year))
+
+        if month:
+            query += " AND substr(posted_time, 4, 2) = ?"
+            params.append(f"{int(month):02d}")
+
+        query += "GROUP BY year_month, location ORDER BY year_month DESC;"
+        print(query)
+        return self.db.query(query, tuple(params))
+
+    def api_available_districts(self):
+        query = "SELECT DISTINCT district FROM danang_apartments WHERE district IS NOT NULL;"
         return self.db.query(query)
 
     def close(self):

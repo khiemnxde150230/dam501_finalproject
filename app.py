@@ -34,25 +34,48 @@ def api_apartment_demand():
         "rent": [{"district": (row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""), "count": row[1]} for row in data_rent]
     })
 
-@app.route('/apartment-average-data')
-def apartment_average_data():
-    return render_template('apartment_average_data.html')
+@app.route('/apartment-price-per-sqm')
+def apartment_price_per_sqm():
+    return render_template('apartment_price_per_sqm.html')
 
 # Q2
-@app.route('/api/apartment-average-data')
-def api_apartment_average_data():
+@app.route('/api/average-sale-price-per-sqm')
+def api_apartment_sale_price_per_sqm():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    district = request.args.get('district')
+    if district == "Tất cả Quận": district = None
+
     analysis = Analysis()
-    data_sale = analysis.get_avg_price_data()
+    data_sale = analysis.get_avg_price_data(is_selling=1, year=year, month=month, district=district)
     analysis.close()
 
     return jsonify({
-        "average_price_data": [
-            {"year_month": row[0], "bedrooms": row[1], "avg_price": row[2]} for row in data_sale
+        "average_price_data_sale": [
+            {"year_month": row[0], "avg_price": row[1]} for row in data_sale
+        ]
+    })
+
+@app.route('/api/average-rent-price-per-sqm')
+def api_apartment_rent_price_per_sqm():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    district = request.args.get('district')
+    if district == "Tất cả Quận": district = None
+
+    analysis = Analysis()
+    data_rent = analysis.get_avg_price_data(is_selling=0, year=year, month=month, district=district)
+    analysis.close()
+
+    return jsonify({
+        "average_price_data_rent": [
+            {"year_month": row[0], "avg_price": row[1]} for row in data_rent
         ]
     })
 
 @app.route('/api/apartment-area-selling')
 def api_apartment_area_selling():
+
     analysis = Analysis()
     data = analysis.get_apartment_area_selling()
     analysis.close()
@@ -100,6 +123,14 @@ def api_apartment_demand_wordcloud():
     img_io.seek(0)
 
     return send_file(img_io, mimetype="image/png")
+
+@app.route('/api/available-districts')
+def api_available_districts():
+    analysis = Analysis()
+    districts = [row[0] for row in analysis.api_available_districts()]
+    analysis.close()
+
+    return jsonify({"districts": districts})
 
 if __name__ == '__main__':
     app.run(debug=True)

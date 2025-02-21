@@ -21,9 +21,9 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">📊 - 2. Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
-                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
-                        <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
+                        <h5 class="card-title">📊 - 2. Thống kê giá trung bình mỗi m2 theo tháng của căn hộ cho thuê/bán</h5>
+                        <p class="card-text">Thống kê giá trung bình mỗi m2 theo tháng của căn hộ cho thuê/bán</p>
+                        <a href="{{ url_for('apartment_price_per_sqm') }}" class="btn btn-primary">Xem thống kê</a>
                     </div>
                 </div>
             </div>
@@ -42,15 +42,6 @@
                         <h5 class="card-title">📊 - 4. Phân nhóm căn hộ theo diện tích cần bán/cho thuê theo từng quận</h5>
                         <p class="card-text">Phân nhóm căn hộ theo diện tích cần bán/cho thuê theo từng quận</p>
                         <a href="{{ url_for('apartment_area') }}" class="btn btn-primary">Xem thống kê</a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">📊 Thống kê giá trung bình theo tháng của căn hộ cho thuê/bán?</h5>
-                        <p class="card-text">Thống kê giá mua/bán căn hộ trung bình theo từng tháng.</p>
-                        <a href="{{ url_for('apartment_average_data') }}" class="btn btn-primary">Xem thống kê</a>
                     </div>
                 </div>
             </div>
