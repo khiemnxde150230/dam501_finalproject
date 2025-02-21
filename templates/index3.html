@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thống kê Bất động sản Đà Nẵng</title>
+</head>
+<body>
+    <h1>Thống kê số lượng tin rao bán</h1>
+    <img src="data:image/png;base64,{{ selling_plot }}" alt="Thống kê rao bán">
+    <h2>Số lượng tin rao bán theo khu vực</h2>
+    <ul>
+        {% for location, categories in selling_stats.items() %}
+            <li><strong>{{ location }}</strong>
+                <ul>
+                    {% for category, count in categories.items() %}
+                        <li>{{ category }}: {{ count }} tin</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h1>Thống kê số lượng tin cho thuê</h1>
+    <img src="data:image/png;base64,{{ renting_plot }}" alt="Thống kê cho thuê">
+    <h2>Số lượng tin cho thuê theo khu vực</h2>
+    <ul>
+        {% for location, categories in renting_stats.items() %}
+            <li><strong>{{ location }}</strong>
+                <ul>
+                    {% for category, count in categories.items() %}
+                        <li>{{ category }}: {{ count }} tin</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
