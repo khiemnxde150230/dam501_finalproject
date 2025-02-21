@@ -21,6 +21,7 @@ def apartment_demand():
 def apartment_area():
     return render_template('apartment_area.html')
 
+# Q1
 @app.route('/api/apartment-demand')
 def api_apartment_demand():
     year = request.args.get('year', type=int)
@@ -34,6 +35,45 @@ def api_apartment_demand():
     return jsonify({
         "sale": [{"district": (row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""), "count": row[1]} for row in data_sale],
         "rent": [{"district": (row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""), "count": row[1]} for row in data_rent]
+    })
+
+@app.route('/apartment-price-per-sqm')
+def apartment_price_per_sqm():
+    return render_template('apartment_price_per_sqm.html')
+
+# Q2
+@app.route('/api/average-sale-price-per-sqm')
+def api_apartment_sale_price_per_sqm():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    district = request.args.get('district')
+    if district == "Tất cả Quận": district = None
+
+    analysis = Analysis()
+    data_sale = analysis.get_avg_price_data(is_selling=1, year=year, month=month, district=district)
+    analysis.close()
+
+    return jsonify({
+        "average_price_data_sale": [
+            {"year_month": row[0], "avg_price": row[1]} for row in data_sale
+        ]
+    })
+
+@app.route('/api/average-rent-price-per-sqm')
+def api_apartment_rent_price_per_sqm():
+    year = request.args.get('year', type=int)
+    month = request.args.get('month', type=int)
+    district = request.args.get('district')
+    if district == "Tất cả Quận": district = None
+
+    analysis = Analysis()
+    data_rent = analysis.get_avg_price_data(is_selling=0, year=year, month=month, district=district)
+    analysis.close()
+
+    return jsonify({
+        "average_price_data_rent": [
+            {"year_month": row[0], "avg_price": row[1]} for row in data_rent
+        ]
     })
 
 @app.route('/api/apartment-area-selling')
@@ -129,14 +169,14 @@ def count_listings_by_price_and_location(data, is_selling):
         price_categories = ["1-3 tỷ", "3-5 tỷ", "5-10 tỷ", ">10 tỷ"]
     else:
         price_categories = ["Dưới 5 triệu", "5-10 triệu", "10-20 triệu", ">20 triệu"]
-    
+
     stats = {loc: {cat: 0 for cat in price_categories} for loc in locations}
-    
+
     for _, _, price, location, selling in data:
         if location in locations and selling == is_selling:
             category = categorize_price(price, is_selling)
             stats[location][category] += 1
-    
+
     return stats
 
 def analyze_data(data):
@@ -151,13 +191,13 @@ def plot_data(stats):
     for location, values in stats.items():
         y_values = [values[cat] for cat in price_categories]
         plt.plot(price_categories, y_values, marker='o', label=location)
-    
+
     plt.xlabel("Mức giá")
     plt.ylabel("Số lượng tin")
     plt.title("Phân bố số lượng tin rao bán/cho thuê theo mức giá và khu vực")
     plt.legend()
     plt.grid()
-    
+
     img = io.BytesIO()
     plt.savefig(img, format='png')
     img.seek(0)
@@ -172,11 +212,19 @@ renting_plot = plot_data(renting_stats)
 
 @app.route('/index3')
 def index3():
-    return render_template('index3.html', 
-                           selling_stats=selling_stats, 
-                           renting_stats=renting_stats, 
-                           selling_plot=selling_plot, 
+    return render_template('index3.html',
+                           selling_stats=selling_stats,
+                           renting_stats=renting_stats,
+                           selling_plot=selling_plot,
                            renting_plot=renting_plot)
+
+@app.route('/api/available-districts')
+def api_available_districts():
+    analysis = Analysis()
+    districts = [row[0] for row in analysis.api_available_districts()]
+    analysis.close()
+
+    return jsonify({"districts": districts})
 
 if __name__ == '__main__':
     app.run(debug=True)

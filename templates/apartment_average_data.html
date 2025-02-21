@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Giá trung bình căn hộ theo tháng{% endblock %}
+
+{% block content %}
+    <div>
+        <div class="text-center my-4">
+            <h2>Giá trung bình căn hộ theo tháng</h2>
+        </div>
+        <div class="d-flex justify-content-center gap-3 my-3">
+            <select id="yearSelect" class="form-select w-auto">
+                <option value="">Tất cả năm</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+            </select>
+            <select id="monthSelect" class="form-select w-auto">
+                <option value="">Tất cả tháng</option>
+                <option value="1">Tháng 1</option>
+                <option value="2">Tháng 2</option>
+                <option value="3">Tháng 3</option>
+                <option value="4">Tháng 4</option>
+                <option value="5">Tháng 5</option>
+                <option value="6">Tháng 6</option>
+                <option value="7">Tháng 7</option>
+                <option value="8">Tháng 8</option>
+                <option value="9">Tháng 9</option>
+                <option value="10">Tháng 10</option>
+                <option value="11">Tháng 11</option>
+                <option value="12">Tháng 12</option>
+            </select>
+        </div>
+        <div class="text-center my-4">
+            <h3>Giá trung bình căn hộ bán theo tháng</h3>
+            <div id="apartmentSaleChart" style="width: 100%; height: 500px;"></div>
+        </div>
+        <div class="text-center my-4">
+            <h3>Giá trung bình căn hộ thuê theo tháng</h3>
+            <div id="apartmentRentChart" style="width: 100%; height: 500px;"></div>
+        </div>
+    </div>
+    <script src="../static/js/apartmentAverageChart.js"></script>
+{% endblock %}

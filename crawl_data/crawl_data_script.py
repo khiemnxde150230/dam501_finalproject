@@ -4,6 +4,7 @@ import re
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 
+
 class RealEstateCrawler:
     def __init__(self, db_name="data.db"):
         self.db_name = db_name
@@ -12,7 +13,8 @@ class RealEstateCrawler:
         self.cursor = self.conn.cursor()
 
     def create_table(self):
-        self.cursor.execute(f"""
+        """Creates the database table with additional fields for detailed location, property ID, and description."""
+        self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS danang_apartments (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 title TEXT,
@@ -25,34 +27,32 @@ class RealEstateCrawler:
                 city TEXT,
                 bedrooms INTEGER,
                 bathrooms INTEGER,
+                property_id TEXT,
                 posted_time TEXT,
-                is_selling BOOLEAN,
-                property_code TEXT,
-                coordinates TEXT
+                description TEXT,
+                is_selling BOOLEAN
             );
         """)
         self.conn.commit()
 
-
     def convert_price_to_number(self, price):
+        """Converts price from text format (e.g., '2.3 tỷ' or '500 triệu') to numerical format."""
         price = price.lower().strip()
         if 'tỷ' in price and 'triệu' in price:
             ty, trieu = map(float, re.findall(r'(\d+)', price))
             price = ty * 1_000_000_000 + trieu * 1_000_000
-        elif 'triệu' in price and 'nghìn' in price:
-            trieu, nghin = map(float, re.findall(r'(\d+)', price))
-            price = trieu * 1_000_000 + nghin * 1_000
-        elif 'tỷ' in price:
-            ty = float(re.search(r'(\d+)', price).group(1))
-            price = ty * 1_000_000_000
         elif 'triệu' in price:
             trieu = float(re.search(r'(\d+)', price).group(1))
             price = trieu * 1_000_000
+        elif 'tỷ' in price:
+            ty = float(re.search(r'(\d+)', price).group(1))
+            price = ty * 1_000_000_000
         else:
-            return 0
+            return 0  # giá ảo, return 0 để lọc bỏ
         return price
 
     def convert_posted_time(self, posted_time):
+        """Converts date format to 'dd-mm-yyyy' for consistency."""
         posted_time = posted_time.replace("-", "/")
         if "Hôm nay" in posted_time:
             return datetime.now().strftime("%d-%m-%Y")
@@ -61,43 +61,37 @@ class RealEstateCrawler:
         else:
             return posted_time.replace("/", "-")
 
-    def fetch_details(self, detail_url):
+    def fetch_detail_data(self, detail_url):
+        """Fetches additional details from an apartment's detail page."""
         response = requests.get(detail_url)
         if response.status_code != 200:
-            print(f"Lỗi khi lấy dữ liệu chi tiết từ {detail_url}: {response.status_code}")
-            return '', ''
+            print(f"Lỗi khi lấy dữ liệu từ {detail_url}: {response.status_code}")
+            return None, None, None, None, None
 
         soup = BeautifulSoup(response.text, "html.parser")
-        
-        coordinates = ''
-        iframe_tag = soup.find("iframe", title="map")
-        if iframe_tag:
-            iframe_src = iframe_tag.get("data-src")
-            if iframe_src and "q=" in iframe_src:
-                coords = iframe_src.split("q=")[-1].split("&")[0]
-                coordinates = coords
 
-        property_code = ''
-        info_attrs = soup.find("div", class_="info-attrs")
-        if info_attrs:
-            for info_attr in info_attrs.find_all("div", class_="info-attr"):
-                label = info_attr.find("span", text="Mã BĐS")
-                if label:
-                    property_code = info_attr.find_all("span")[1].text.strip()
-                    break
+        # Extract property ID
+        property_id = None
+        property_id_tag = soup.find("div", class_="property-id")
+        if property_id_tag:
+            property_id = property_id_tag.text.strip().replace("Mã tin: ", "")
 
-        address_tag = soup.find("div", class_="address")
-        detailed_address = address_tag.text.strip() if address_tag else ''
+        # Extract detailed location
+        location_details = soup.find("div", class_="property-location")
         street, ward, district, city = None, None, None, None
-        if detailed_address:
-            location_parts = detailed_address.split(", ")
+        if location_details:
+            location_parts = location_details.text.strip().split(", ")
             if len(location_parts) >= 4:
                 street, ward, district, city = location_parts[:4]
 
-        return property_code, street, ward, district, city, coordinates
+        # Extract full description
+        description_tag = soup.find("div", class_="description")
+        description = description_tag.text.strip() if description_tag else ""
 
+        return property_id, street, ward, district, city, description
 
     def fetch_page_data(self, url, is_selling):
+        """Crawls apartment listing pages and fetches basic details along with links to detail pages."""
         print(f"Đang crawl trang: {url}")
 
         response = requests.get(url)
@@ -116,40 +110,53 @@ class RealEstateCrawler:
             try:
                 title = listing.find("h2", class_="prop-title").text.strip()
                 price = listing.find("div", class_="price").text.strip()
-                area = float(re.findall(r'(\d+)', listing.find("ul", class_="prop-attr").find_all("li")[0].text.strip())[0])
-                bedrooms = int(re.search(r'(\d+) PN', listing.text).group(1)) if re.search(r'(\d+) PN', listing.text) else 0
-                bathrooms = int(re.search(r'(\d+) WC', listing.text).group(1)) if re.search(r'(\d+) WC', listing.text) else 0
+                area = float(
+                    re.findall(r'(\d+)', listing.find("ul", class_="prop-attr").find_all("li")[0].text.strip())[0])
+                bedrooms = int(re.search(r'(\d+) PN', listing.text).group(1)) if re.search(r'(\d+) PN',
+                                                                                           listing.text) else 0
+                bathrooms = int(re.search(r'(\d+) WC', listing.text).group(1)) if re.search(r'(\d+) WC',
+                                                                                            listing.text) else 0
                 location = listing.find("div", class_="prop-addr").text.strip()
                 posted_time = self.convert_posted_time(listing.find("div", class_="prop-created").text.strip())
 
                 price = self.convert_price_to_number(price)
 
-                if bedrooms > 5 or price < 1_000_000 or area < 10 or (is_selling and price < 100_000_000): #lọc bỏ mấy bài vô lý
+                # Extract listing detail page link
+                detail_link = listing.find("a", class_="prop-title")["href"]
+                full_detail_url = f"https://mogi.vn{detail_link}"
+
+                # Fetch additional details from detail page
+                property_id, street, ward, district, city, description = self.fetch_detail_data(full_detail_url)
+
+                if bedrooms > 5 or price < 1_000_000 or area < 10 or (is_selling and price < 100_000_000):
                     continue
 
-                detail_url = listing.find("a", class_="link-overlay")["href"]
-                property_code, street, ward, district, city, coordinates = self.fetch_details(detail_url)
+                print(
+                    f"- {title} | {price} | {area} | {location} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'} | {property_id}")
 
-                print(f"- {title} | {price} | {area} | {location} | {street} | {ward} | {district} | {city} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'} | Mã BĐS: {property_code} | Tọa độ: {coordinates}")
-                self.data.append([title, price, area, location, street, ward, district, city, bedrooms, bathrooms, posted_time, is_selling, property_code, coordinates])
+                self.data.append(
+                    [title, price, area, location, street, ward, district, city, bedrooms, bathrooms, property_id,
+                     posted_time, description, is_selling])
+
             except (AttributeError, IndexError):
                 continue
 
         return True
 
     def save_to_database(self):
+        """Saves crawled data into SQLite database."""
         self.create_table()
         for row in self.data:
-            row[10] = datetime.strptime(row[10], "%d-%m-%Y").strftime("%d-%m-%Y")
+            row[11] = datetime.strptime(row[11], "%d-%m-%Y").strftime("%d-%m-%Y")
             self.cursor.execute("""
-                INSERT INTO danang_apartments (title, price, area, location, street, ward, district, city, bedrooms, bathrooms, posted_time, is_selling, property_code, coordinates)
+                INSERT INTO danang_apartments (title, price, area, location, street, ward, district, city, bedrooms, bathrooms, property_id, posted_time, description, is_selling)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, row)
         self.conn.commit()
         print("Dữ liệu đã được lưu vào bảng danang_apartments trong cơ sở dữ liệu.")
 
-
     def start_crawling(self, base_url):
+        """Starts crawling apartment listings from the base URL."""
         page_number = 1
         while True:
             url = f"{base_url}?cp={page_number}"
@@ -158,7 +165,9 @@ class RealEstateCrawler:
             page_number += 1
 
     def close_connection(self):
+        """Closes the database connection."""
         self.conn.close()
+
 
 if __name__ == "__main__":
     print("CRAWL REAL ESTATE DATA from mogi.vn")
