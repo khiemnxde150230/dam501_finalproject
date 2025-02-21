@@ -3,17 +3,17 @@
 {% block title %}Phân tích bất động sản{% endblock %}
 
 {% block content %}
-    <h1 class="text-center my-4">Group 1 - PPR501</h1>
-    <h1 class="text-center my-4">Phân tích dữ liệu căn hộ tại địa bàn Đà Nẵng trên mogi.vn</h1>
-    <h2 class="text-center my-4">Chọn một phân tích</h2>
+    <h1 class="text-center my-4">Group 1 - Lớp Python cho kỹ sư</h1>
+    <h2 class="text-center my-4">Phân tích dữ liệu căn hộ tại địa bàn Đà Nẵng trên mogi.vn</h2>
+    <h3 class="text-center my-4">Chọn một phân tích</h3>
 
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">📊 - 1. Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
-                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
+                        <h5 class="card-title">📊 - 1. Nhu cầu bán/cho thuê</h5>
+                        <p class="card-text">Thống kê số lượng tin đăng bán/cho thuê theo từng quận.</p>
                         <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
                     </div>
                 </div>
@@ -30,9 +30,9 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">📊 - 3. Quận nào có nhu cầu mua/bán nhiều nhất?</h5>
-                        <p class="card-text">Thống kê số lượng tin đăng mua/bán theo từng quận.</p>
-                        <a href="{{ url_for('apartment_demand') }}" class="btn btn-primary">Xem thống kê</a>
+                        <h5 class="card-title">📊 - 3. Thống kê số lượng tin rao bán/cho thuê theo mức giá và khu vực.</h5>
+                        <p class="card-text">Thống kê số lượng tin rao bán/cho thuê theo mức giá và khu vực.</p>
+                        <a href="{{ url_for('index3') }}" class="btn btn-primary">Xem thống kê</a>
                     </div>
                 </div>
             </div>
