@@ -59,8 +59,14 @@ async function fetchPricePerSqmData() {
     const layout = {
         title: currentMode === "sale" ? `Giá trung bình mỗi m² bán theo tháng (${district || "Tất cả Quận"})`
                                        : `Giá trung bình mỗi m² thuê theo tháng (${district || "Tất cả Quận"})`,
-        xaxis: { title: "Tháng" },
+        xaxis: {
+            title: "Tháng",
+            tickangle: -45,  // Rotate x-axis labels to prevent overlap
+            tickmode: "array",
+            automargin: true  // Allow margin for better readability
+        },
         yaxis: { title: "Giá trung bình (VND/m²)" },
+        margin: { b: 80 }, // Add extra bottom margin for x-axis readability
         barmode: 'group'
     };
 

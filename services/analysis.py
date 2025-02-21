@@ -61,7 +61,7 @@ class Analysis:
 
     def get_avg_price_data(self, is_selling, year=None, month=None, district=None):
         query = """
-        SELECT posted_time AS year_month, AVG(price / area) as avg_price_per_sqm
+        SELECT substr(posted_time, 4, 7) AS month_year, AVG(price / area) AS avg_price_per_sqm
         FROM danang_apartments
         WHERE is_selling = ? AND area > 0
         """
@@ -79,7 +79,7 @@ class Analysis:
             query += " AND substr(posted_time, 4, 2) = ?"
             params.append(f"{int(month):02d}")
 
-        query += "GROUP BY year_month, location ORDER BY year_month DESC;"
+        query += "GROUP BY month_year ORDER BY month_year DESC;"
         print(query)
         return self.db.query(query, tuple(params))
 
