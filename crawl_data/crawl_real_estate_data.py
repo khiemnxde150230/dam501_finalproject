@@ -24,7 +24,8 @@ class RealEstateCrawler:
                 bathrooms INTEGER,
                 posted_time TEXT,
                 is_selling BOOLEAN,
-                real_estate_code TEXT
+                real_estate_code TEXT,
+                coordinates TEXT
             );
         """)
         self.conn.commit()
@@ -64,6 +65,14 @@ class RealEstateCrawler:
             return '', ''
 
         soup = BeautifulSoup(response.text, "html.parser")
+        
+        coordinates = ''
+        iframe_tag = soup.find("iframe", title="map")
+        if iframe_tag:
+            iframe_src = iframe_tag.get("data-src")
+            if iframe_src and "q=" in iframe_src:
+                coords = iframe_src.split("q=")[-1].split("&")[0]
+                coordinates = coords
 
         property_code = ''
         info_attrs = soup.find("div", class_="info-attrs")
@@ -77,7 +86,7 @@ class RealEstateCrawler:
         address_tag = soup.find("div", class_="address")
         detailed_address = address_tag.text.strip() if address_tag else ''
 
-        return property_code, detailed_address
+        return property_code, detailed_address, coordinates
 
 
     def fetch_page_data(self, url, is_selling):
@@ -111,10 +120,10 @@ class RealEstateCrawler:
                     continue
 
                 detail_url = listing.find("a", class_="link-overlay")["href"]
-                property_code, detailed_address = self.fetch_details(detail_url)
+                property_code, detailed_address, coordinates = self.fetch_details(detail_url)
 
-                print(f"- {title} | {price} | {area} | {location} | {detailed_address} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'} | Mã BĐS: {property_code}")
-                self.data.append([title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, property_code])
+                print(f"- {title} | {price} | {area} | {location} | {detailed_address} | {bedrooms} PN | {bathrooms} WC | {posted_time} | {'Mua' if is_selling else 'Thuê'} | Mã BĐS: {property_code} | Tọa độ: {coordinates}")
+                self.data.append([title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, property_code, coordinates])
             except (AttributeError, IndexError):
                 continue
 
@@ -125,8 +134,8 @@ class RealEstateCrawler:
         for row in self.data:
             row[7] = datetime.strptime(row[7], "%d-%m-%Y").strftime("%d-%m-%Y")
             self.cursor.execute(f"""
-                INSERT INTO danang_apartments (title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, real_estate_code)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                INSERT INTO danang_apartments (title, price, area, location, detailed_address, bedrooms, bathrooms, posted_time, is_selling, real_estate_code, coordinates)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, row)
         self.conn.commit()
         print("Dữ liệu đã được lưu vào bảng danang_apartments trong cơ sở dữ liệu.")
