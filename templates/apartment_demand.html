@@ -30,8 +30,17 @@
                 <option value="12">Tháng 12</option>
             </select>    
         </div>
-        <div class="text-center">
-            <canvas id="apartmentDemandChart"></canvas>
+        <div class="d-flex justify-content-center align-items-center">
+            <!-- <canvas id="apartmentDemandChart"></canvas> -->
+            <div id="apartmentDemandChart" style="width: 100%; height: 500px;"></div>
+        </div>
+        <div class="text-center my-4">
+            <h3>Quận phổ biến nhu cầu bán căn hộ</h3>
+            <img id="wordCloudSale" src="static\images\apartment_demand_wordcloud_selling.png" alt="Nhu cầu Bán" class="img-fluid">
+        </div>
+        <div class="text-center my-4">
+            <h3>Quận phổ biến với nhu cầu cho thuê căn hộ</h3>
+            <img id="wordCloudRent" src="static\images\apartment_demand_wordcloud_renting.png" alt="Nhu cầu Cho Thuê" class="img-fluid">
         </div>
     </div>
     <script src="../static/js/apartmentDemandChart.js" ></script>

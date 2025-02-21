@@ -1,5 +1,8 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_file
 from services.analysis import Analysis
+import matplotlib.pyplot as plt
+import io
+from wordcloud import WordCloud
 
 app = Flask(__name__)
 
@@ -27,8 +30,8 @@ def api_apartment_demand():
     analysis.close()
 
     return jsonify({
-        "sale": [{"district": row[0], "count": row[1]} for row in data_sale],
-        "rent": [{"district": row[0], "count": row[1]} for row in data_rent]
+        "sale": [{"district": (row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""), "count": row[1]} for row in data_sale],
+        "rent": [{"district": (row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""), "count": row[1]} for row in data_rent]
     })
 
 @app.route('/apartment-average-data')
@@ -56,9 +59,10 @@ def api_apartment_area_selling():
 
     result = {}
     for location, area_group, count in data:
-        if location not in result:
-            result[location] = {}
-        result[location][area_group] = count
+        trimmed_location = location.replace("Quận ", "").replace(", Đà Nẵng", "")
+        if trimmed_location not in result:
+            result[trimmed_location] = {}
+        result[trimmed_location][area_group] = count
 
     return jsonify(result)
 
@@ -70,11 +74,32 @@ def api_apartment_area_renting():
 
     result = {}
     for location, area_group, count in data:
-        if location not in result:
-            result[location] = {}
-        result[location][area_group] = count
+        trimmed_location = location.replace("Quận ", "").replace(", Đà Nẵng", "")
+        if trimmed_location not in result:
+            result[trimmed_location] = {}
+        result[trimmed_location][area_group] = count
 
     return jsonify(result)
+
+@app.route('/api/apartment_demand_wordcloud')
+def api_apartment_demand_wordcloud():
+    is_selling = request.args.get('is_selling', type=int)
+    analysis = Analysis()
+    data = analysis.get_apartment_demand(is_selling=is_selling)
+    analysis.close()
+
+    district_counts = {(row[0]).replace("Quận ", "").replace(", Đà Nẵng", ""): row[1] for row in data}
+
+    wordcloud = WordCloud(width=800, height=400, background_color="white").generate_from_frequencies(district_counts)
+
+    img_io = io.BytesIO()
+    plt.figure(figsize=(10, 5))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    plt.savefig(img_io, format="PNG", bbox_inches="tight")
+    img_io.seek(0)
+
+    return send_file(img_io, mimetype="image/png")
 
 if __name__ == '__main__':
     app.run(debug=True)
