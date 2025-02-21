@@ -41,9 +41,10 @@ def api_apartment_area_selling():
 
     result = {}
     for location, area_group, count in data:
-        if location not in result:
-            result[location] = {}
-        result[location][area_group] = count
+        trimmed_location = location.replace("Quận ", "").replace(", Đà Nẵng", "")
+        if trimmed_location not in result:
+            result[trimmed_location] = {}
+        result[trimmed_location][area_group] = count
 
     return jsonify(result)
 
@@ -55,9 +56,10 @@ def api_apartment_area_renting():
 
     result = {}
     for location, area_group, count in data:
-        if location not in result:
-            result[location] = {}
-        result[location][area_group] = count
+        trimmed_location = location.replace("Quận ", "").replace(", Đà Nẵng", "")
+        if trimmed_location not in result:
+            result[trimmed_location] = {}
+        result[trimmed_location][area_group] = count
 
     return jsonify(result)
 
