@@ -33,17 +33,17 @@ class RealEstateCrawler:
     def convert_price_to_number(self, price):
         price = price.lower().strip()
         if 'tỷ' in price and 'triệu' in price:
-            tỷ, triệu = map(float, re.findall(r'(\d+)', price))
-            price = tỷ * 1_000_000_000 + triệu * 1_000_000
+            ty, trieu = map(float, re.findall(r'(\d+)', price))
+            price = ty * 1_000_000_000 + trieu * 1_000_000
         elif 'triệu' in price and 'nghìn' in price:
-            triệu, nghìn = map(float, re.findall(r'(\d+)', price))
-            price = triệu * 1_000_000 + nghìn * 1_000
+            trieu, nghin = map(float, re.findall(r'(\d+)', price))
+            price = trieu * 1_000_000 + nghin * 1_000
         elif 'tỷ' in price:
-            tỷ = float(re.search(r'(\d+)', price).group(1))
-            price = tỷ * 1_000_000_000
+            ty = float(re.search(r'(\d+)', price).group(1))
+            price = ty * 1_000_000_000
         elif 'triệu' in price:
-            triệu = float(re.search(r'(\d+)', price).group(1))
-            price = triệu * 1_000_000
+            trieu = float(re.search(r'(\d+)', price).group(1))
+            price = trieu * 1_000_000
         else:
             return 0
         return price
