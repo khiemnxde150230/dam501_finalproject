@@ -86,6 +86,32 @@ class Analysis:
     def api_available_districts(self):
         query = "SELECT DISTINCT district FROM danang_apartments WHERE district IS NOT NULL;"
         return self.db.query(query)
+    
+    def get_apartment_locations(self, is_selling, min_price=None, max_price=None, district=None, limit=100):
+        query = """
+        SELECT price, area, location, detailed_address, coordinates
+        FROM danang_apartments
+        WHERE is_selling = ? and coordinates != ''
+        """
+        params = [is_selling]
+
+        if min_price is not None:
+            query += " AND price >= ?"
+            params.append(min_price)
+
+        if max_price is not None:
+            query += " AND price <= ?"
+            params.append(max_price)
+
+        if district:
+            query += " AND district = ?"
+            params.append(district)
+
+        query += " LIMIT ?"
+        params.append(limit)
+
+        return self.db.query(query, tuple(params))
+
 
     def close(self):
         self.db.close()
