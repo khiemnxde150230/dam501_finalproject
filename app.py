@@ -21,6 +21,10 @@ def apartment_demand():
 def apartment_area():
     return render_template('apartment_area.html')
 
+@app.route('/apartment-map')
+def map():
+    return render_template('map.html')
+
 # Q1
 @app.route('/api/apartment-demand')
 def api_apartment_demand():
@@ -225,6 +229,22 @@ def api_available_districts():
     analysis.close()
 
     return jsonify({"districts": districts})
+
+@app.route('/api/apartment-map')
+def api_apartment_map():
+    analysis = Analysis()
+    data = analysis.get_apartment_locations(is_selling=1)
+    analysis.close()
+
+    return jsonify([
+        {
+            "latitude": float(row[4].split(",")[0]),
+            "longitude": float(row[4].split(",")[1]),
+            "price": row[0],
+            "area": row[1]
+        }
+        for row in data
+    ])
 
 if __name__ == '__main__':
     app.run(debug=True)
