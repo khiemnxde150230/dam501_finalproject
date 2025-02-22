@@ -89,7 +89,7 @@ class Analysis:
     
     def get_apartment_locations(self, is_selling, min_price=None, max_price=None, district=None, limit=100):
         query = """
-        SELECT price, area, location, detailed_address, coordinates
+        SELECT price, area, location, street, coordinates
         FROM danang_apartments
         WHERE is_selling = ? and coordinates != ''
         """
