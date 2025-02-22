@@ -1,19 +1,13 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Map with Markers in Da Nang City</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-</head>
-<body>
-    <h2>Locations in Da Nang City</h2>
-    <div id="map" style="width: 100%; height: 600px;"></div>
+{% extends 'base.html' %}
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <!-- Your Script -->
-    <script src="../static/js/map.js"></script>
-</body>
-</html>
+{% block title %}Giá trung bình căn hộ theo tháng{% endblock %}
+
+{% block content %}
+    <h2>Các địa điểm rao bán tại Đà Nẵng</h2>
+        <div id="map" style="width: 100%; height: 600px;"></div>
+
+        <!-- Leaflet JS -->
+        <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+        <!-- Your Script -->
+        <script src="../static/js/map.js"></script>
+{% endblock %}

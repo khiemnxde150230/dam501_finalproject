@@ -230,6 +230,7 @@ def api_available_districts():
 
     return jsonify({"districts": districts})
 
+#Q5
 @app.route('/api/apartment-map')
 def api_apartment_map():
     analysis = Analysis()
