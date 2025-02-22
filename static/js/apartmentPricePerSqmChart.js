@@ -17,14 +17,12 @@ async function fetchDistricts() {
 
 async function fetchPricePerSqmData() {
     const year = document.getElementById("yearSelect").value;
-    const month = document.getElementById("monthSelect").value;
     const district = document.getElementById("districtSelect").value;
 
     let url = currentMode === "sale" ? "/api/average-sale-price-per-sqm" : "/api/average-rent-price-per-sqm";
     let params = [];
 
     if (year) params.push(`year=${year}`);
-    if (month) params.push(`month=${month}`);
     if (district) params.push(`district=${encodeURIComponent(district)}`);
 
     if (params.length > 0) {
@@ -90,7 +88,6 @@ function switchMode(mode) {
 
 // Event listeners
 document.getElementById("yearSelect").addEventListener("change", fetchPricePerSqmData);
-document.getElementById("monthSelect").addEventListener("change", fetchPricePerSqmData);
 document.getElementById("districtSelect").addEventListener("change", fetchPricePerSqmData);
 document.getElementById("saleBtn").addEventListener("click", () => switchMode("sale"));
 document.getElementById("rentBtn").addEventListener("click", () => switchMode("rent"));
