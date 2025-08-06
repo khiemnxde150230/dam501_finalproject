@@ -134,7 +134,7 @@ def get_data_from_db():
     conn = sqlite3.connect("data.db")
     cursor = conn.cursor()
     query = """
-        SELECT id, title, price, location, is_selling FROM danang_apartments
+        SELECT id, title, price, location, is_selling FROM danang_batdongsan
     """
     cursor.execute(query)
     data = cursor.fetchall()
