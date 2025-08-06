@@ -11,7 +11,7 @@ def visualize_apartment_area_data():
                 ELSE '>100'
             END AS area_group,
             COUNT(*) AS count
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = 1
         GROUP BY location, area_group
         ORDER BY location, area_group;
@@ -27,7 +27,7 @@ def visualize_apartment_area_data():
                 ELSE '>100'
             END AS area_group,
             COUNT(*) AS count
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = 0
         GROUP BY location, area_group
         ORDER BY location, area_group;

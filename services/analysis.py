@@ -7,7 +7,7 @@ class Analysis:
     def get_apartment_demand(self, is_selling, year=None, month=None):
         query = """
         SELECT location, COUNT(*) as num_listings
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = ?
         """
         params = [is_selling]
@@ -34,7 +34,7 @@ class Analysis:
                 ELSE '>100'
             END AS area_group,
             COUNT(*) AS count
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = 1
         GROUP BY location, area_group
         ORDER BY location, area_group;
@@ -52,7 +52,7 @@ class Analysis:
                 ELSE '>100'
             END AS area_group,
             COUNT(*) AS count
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = 0
         GROUP BY location, area_group
         ORDER BY location, area_group;
@@ -62,7 +62,7 @@ class Analysis:
     def get_avg_price_data(self, is_selling, year=None, month=None, district=None):
         query = """
         SELECT substr(posted_time, 4, 7) AS month_year, AVG(price / area) AS avg_price_per_sqm
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = ? AND area > 0
         """
         params = [is_selling]
@@ -84,13 +84,13 @@ class Analysis:
         return self.db.query(query, tuple(params))
 
     def api_available_districts(self):
-        query = "SELECT DISTINCT district FROM danang_apartments WHERE district IS NOT NULL;"
+        query = "SELECT DISTINCT district FROM danang_batdongsan WHERE district IS NOT NULL;"
         return self.db.query(query)
     
-    def get_apartment_locations(self, is_selling, min_price=None, max_price=None, district=None, limit=100):
+    def get_apartment_locations(self, is_selling, min_price=None, max_price=None, district=None, limit=500):
         query = """
         SELECT price, area, location, street, coordinates
-        FROM danang_apartments
+        FROM danang_batdongsan
         WHERE is_selling = ? and coordinates != ''
         """
         params = [is_selling]
@@ -115,4 +115,3 @@ class Analysis:
 
     def close(self):
         self.db.close()
-
