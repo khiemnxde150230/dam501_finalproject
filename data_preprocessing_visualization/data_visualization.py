@@ -166,16 +166,21 @@ class DanangRealEstateVisualizer:
             axes[0, 1].set_xticklabels(price_per_sqm_by_district.index, rotation=45, ha='right')
             axes[0, 1].grid(True, alpha=0.3)
         
-        # 3. Price Distribution by Bedrooms
-        print("3. Creating price distribution by bedrooms plot...")
-        bedroom_price_data = [self.df[self.df['bedrooms'] == i]['price'] / 1e9 for i in sorted(self.df['bedrooms'].unique())]
-        bedroom_labels = [f'{i} BR' for i in sorted(self.df['bedrooms'].unique())]
-        
-        axes[1, 0].boxplot(bedroom_price_data, labels=bedroom_labels)
-        axes[1, 0].set_title('Price Distribution by Bedrooms', fontweight='bold')
-        axes[1, 0].set_xlabel('Number of Bedrooms')
-        axes[1, 0].set_ylabel('Price (Billion VND)')
-        axes[1, 0].grid(True, alpha=0.3)
+        # 3. Price Distribution by posted_time (year)
+        print("3. Creating price distribution by posted year plot...")
+        year_series = pd.to_numeric(self.df.get('posted_year', pd.Series([])), errors='coerce')
+        valid_years = sorted(year_series.dropna().astype(int).unique())
+        if len(valid_years) > 0:
+            year_price_data = [(self.df.loc[year_series == y, 'price'] / 1e9) for y in valid_years]
+            year_labels = [str(int(y)) for y in valid_years]
+            axes[1, 0].boxplot(year_price_data, labels=year_labels)
+            axes[1, 0].set_title('Price Distribution by Posted Year', fontweight='bold')
+            axes[1, 0].set_xlabel('Posted Year')
+            axes[1, 0].set_ylabel('Price (Billion VND)')
+            axes[1, 0].grid(True, alpha=0.3)
+        else:
+            axes[1, 0].text(0.5, 0.5, 'No valid posted_year data', ha='center', va='center')
+            axes[1, 0].axis('off')
         
         # 4. Price vs Area with District Colors
         print("4. Creating price vs area with district colors plot...")

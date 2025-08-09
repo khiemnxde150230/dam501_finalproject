@@ -130,17 +130,20 @@ class DanangRealEstateCleaner:
                 self.df[col] = self.df[col].replace('nan', 0)
                 self.df[col] = self.df[col].replace('None', 0)
         
-        # 2.2. Xử lý giá trị 0 (không loại bỏ giá trị âm)
-        print("\n--- 2.2. Xử lý giá trị 0 (giữ nguyên giá trị âm) ---")
+        # 2.2. Xử lý giá trị 0 và null cho price/area (giữ nguyên giá trị âm)
+        print("\n--- 2.2. Xử lý giá trị 0 và null cho price/area (giữ nguyên giá trị âm) ---")
         
-        # Chỉ xử lý giá trị = 0, giữ nguyên giá trị âm
         for col in ['price', 'area']:
             if col in self.df.columns:
-                zero_count = (self.df[col] == 0).sum()
+                # Ép kiểu số và thay thế null bằng 0
+                before_null = self.df[col].isna().sum()
+                self.df[col] = pd.to_numeric(self.df[col], errors='coerce').fillna(0)
+                after_zero = (self.df[col] == 0).sum()
                 negative_count = (self.df[col] < 0).sum()
-                if zero_count > 0:
-                    print(f"  - {col}: {zero_count} giá trị = 0 → Thay thế bằng NaN")
-                    self.df[col] = self.df[col].replace(0, np.nan)
+                if before_null > 0:
+                    print(f"  - {col}: {before_null} giá trị null → Thay thế bằng 0")
+                if after_zero > 0:
+                    print(f"  - {col}: {after_zero} giá trị = 0 (được giữ nguyên)")
                 if negative_count > 0:
                     print(f"  - {col}: {negative_count} giá trị âm → Giữ nguyên")
         
@@ -228,6 +231,21 @@ class DanangRealEstateCleaner:
         # Chuẩn hóa lại khoảng trắng và chữ hoa/thường sau khi thay thế
         self.df['district'] = self.df['district'].str.strip().str.title()
 
+        # Nếu district lại chứa tiền tố Phường/P. (bị điền nhầm), di chuyển sang ward nếu ward đang thiếu
+        mis_ward_in_district = self.df['district'].astype(str).str.match(r'^\s*(Phường|Phuong|P\.)\s*', case=False)
+        if mis_ward_in_district.any():
+            extracted_ward = (
+                self.df.loc[mis_ward_in_district, 'district']
+                .str.replace(r'^\s*(Phường|Phuong|P\.)\s*', '', regex=True)
+                .str.strip()
+                .str.title()
+            )
+            ward_missing = self.df['ward'].astype(str).str.strip().str.upper().isin(['', 'N/A', 'NONE', 'NAN'])
+            move_mask = mis_ward_in_district & ward_missing
+            self.df.loc[move_mask, 'ward'] = extracted_ward.loc[move_mask]
+            # Đặt district thành N/A cho các dòng bị điền sai
+            self.df.loc[mis_ward_in_district, 'district'] = 'N/A'
+
         # 3.3. Chuẩn hóa tên phường
         print("  - Chuẩn hóa tên phường")
         
@@ -235,6 +253,23 @@ class DanangRealEstateCleaner:
         self.df['ward'] = self.df['ward'].str.replace('Phường ', '', regex=False)
         self.df['ward'] = self.df['ward'].str.replace('P.', '', regex=False)
         
+        # 3.4. Nếu city chứa tiền tố Quận/Q. (bị điền nhầm), di chuyển sang district (sau khi clean ở trên)
+        if 'city' in self.df.columns:
+            self.df['city'] = self.df['city'].astype(str).str.strip()
+            mis_district_in_city = self.df['city'].str.match(r'^\s*(Quận|Q\.)\s*')
+            if mis_district_in_city.any():
+                extracted_district = (
+                    self.df.loc[mis_district_in_city, 'city']
+                    .str.replace(r'^\s*(Quận|Q\.)\s*', '', regex=True)
+                    .str.strip()
+                    .str.title()
+                )
+                district_missing = self.df['district'].astype(str).str.strip().str.upper().isin(['', 'N/A', 'NONE', 'NAN'])
+                move_mask = mis_district_in_city & district_missing
+                self.df.loc[move_mask, 'district'] = extracted_district.loc[move_mask]
+                # Đặt lại city về "Đà Nẵng" cho các dòng bị điền sai (vì bộ dữ liệu là Đà Nẵng)
+                self.df.loc[mis_district_in_city, 'city'] = 'Đà Nẵng'
+         
         print("✓ Hoàn thành chuẩn hóa địa chỉ")
     
     def remove_duplicates(self):
@@ -339,6 +374,11 @@ class DanangRealEstateCleaner:
                 self.df.loc[datetime_mask, 'posted_day'] = posted_time_dt.dt.day
             print("  - Tạo cột thời gian (year, month, day) - chỉ cho ngày hợp lệ")
         
+        # 5.4. Đảm bảo price/area không còn NaN (thay bằng 0 để phục vụ trực quan hoá area vs price)
+        for col in ['price', 'area']:
+            if col in self.df.columns:
+                self.df[col] = pd.to_numeric(self.df[col], errors='coerce').fillna(0)
+
         print("✓ Hoàn thành xử lý outliers và tạo cột dẫn xuất")
         
         # 5.4. Chuẩn hoá các trường dẫn xuất bị null (giữ kiểu số)

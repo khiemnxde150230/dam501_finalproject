@@ -1,13 +1,13 @@
 DANANG REAL ESTATE MARKET INSIGHTS
 ==================================================
 
-💰 Average property price: 4.10 billion VND
-💰 Median property price: 2.50 billion VND
-🏠 Average property area: 115.8 m²
-🏠 Median property area: 86.0 m²
-📊 Average price per m²: 40.9 million VND/m²
-📊 Median price per m²: 33.3 million VND/m²
-🏆 Most expensive district: Quận Hải Châu (4.76 billion VND avg)
-💰 Most affordable district: Phường Hòa Thọ Đông (0.05 billion VND avg)
+💰 Average property price: 4.02 billion VND
+💰 Median property price: 2.41 billion VND
+🏠 Average property area: 113.7 m²
+🏠 Median property area: 85.0 m²
+📊 Average price per m²: 39.6 million VND/m²
+📊 Median price per m²: 30.0 million VND/m²
+🏆 Most expensive district: Hải Châu (4.67 billion VND avg)
+💰 Most affordable district: Hoà Vang (3.33 billion VND avg)
 🛏️ Most common number of bedrooms: 0
 📊 Total properties analyzed: 15,526
