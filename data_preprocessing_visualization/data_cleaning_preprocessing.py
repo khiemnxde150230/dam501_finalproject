@@ -405,6 +405,9 @@ class DanangRealEstateCleaner:
                 # Chỉ tính thống kê cho các giá trị số hợp lệ
                 numeric_data = pd.to_numeric(self.df[col], errors='coerce')
                 valid_data = numeric_data.dropna()
+                # Loại bỏ giá trị 0 cho bedrooms/bathrooms khi tính thống kê liên quan
+                if col in ['bedrooms', 'bathrooms']:
+                    valid_data = valid_data[valid_data > 0]
                 
                 if len(valid_data) > 0:
                     print(f"  - {col}:")
@@ -413,7 +416,10 @@ class DanangRealEstateCleaner:
                     print(f"    Mean: {valid_data.mean():,.2f}")
                     print(f"    Median: {valid_data.median():,.2f}")
                     print(f"    Valid records: {len(valid_data):,}")
-                    print(f"    Invalid/NA records: {len(self.df) - len(valid_data):,}")
+                    filtered_out = len(self.df) - len(valid_data)
+                    if col in ['bedrooms', 'bathrooms']:
+                        print(f"    Note: Đã loại bỏ các bản ghi {col}=0 khi tính thống kê")
+                    print(f"    Invalid/NA records: {filtered_out:,}")
                 else:
                     print(f"  - {col}: Không có giá trị số hợp lệ")
         

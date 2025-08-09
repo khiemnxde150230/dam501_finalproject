@@ -248,37 +248,63 @@ class DanangRealEstateVisualizer:
         
         insights = []
         
-        # Price insights
-        avg_price = self.df['price'].mean() / 1e9
-        median_price = self.df['price'].median() / 1e9
-        insights.append(f"💰 Average property price: {avg_price:.2f} billion VND")
-        insights.append(f"💰 Median property price: {median_price:.2f} billion VND")
+        # Build valid numeric series
+        price_num = pd.to_numeric(self.df.get('price'), errors='coerce')
+        area_num = pd.to_numeric(self.df.get('area'), errors='coerce')
+        ppm_num = pd.to_numeric(self.df.get('price_per_sqm', pd.Series([], dtype=float)), errors='coerce')
         
-        # Area insights
-        avg_area = self.df['area'].mean()
-        median_area = self.df['area'].median()
-        insights.append(f"🏠 Average property area: {avg_area:.1f} m²")
-        insights.append(f"🏠 Median property area: {median_area:.1f} m²")
+        # Price insights (only price > 0)
+        price_valid = price_num[price_num > 0]
+        if len(price_valid) > 0:
+            insights.append(f"💰 Average property price: {price_valid.mean() / 1e9:.2f} billion VND")
+            insights.append(f"💰 Median property price: {price_valid.median() / 1e9:.2f} billion VND")
+        else:
+            insights.append("💰 Price: no valid records (>0)")
         
-        # Price per sqm insights
+        # Area insights (only area > 0)
+        area_valid = area_num[area_num > 0]
+        if len(area_valid) > 0:
+            insights.append(f"🏠 Average property area: {area_valid.mean():.1f} m²")
+            insights.append(f"🏠 Median property area: {area_valid.median():.1f} m²")
+        else:
+            insights.append("🏠 Area: no valid records (>0)")
+        
+        # Price per sqm insights (only > 0)
         if 'price_per_sqm' in self.df.columns:
-            avg_price_per_sqm = self.df['price_per_sqm'].mean() / 1e6
-            median_price_per_sqm = self.df['price_per_sqm'].median() / 1e6
-            insights.append(f"📊 Average price per m²: {avg_price_per_sqm:.1f} million VND/m²")
-            insights.append(f"📊 Median price per m²: {median_price_per_sqm:.1f} million VND/m²")
+            ppm_valid = ppm_num[ppm_num > 0]
+            if len(ppm_valid) > 0:
+                insights.append(f"📊 Average price per m²: {ppm_valid.mean() / 1e6:.1f} million VND/m²")
+                insights.append(f"📊 Median price per m²: {ppm_valid.median() / 1e6:.1f} million VND/m²")
+            else:
+                insights.append("📊 Price per m²: no valid records (>0)")
         
-        # District insights
-        most_expensive_district = self.df.groupby('district')['price'].mean().idxmax()
-        most_expensive_price = self.df.groupby('district')['price'].mean().max() / 1e9
-        insights.append(f"🏆 Most expensive district: {most_expensive_district} ({most_expensive_price:.2f} billion VND avg)")
+        # District insights (use price > 0 only, and valid district)
+        valid_district_mask = price_num > 0
+        district_series = self.df.get('district').astype(str)
+        valid_district_mask &= ~district_series.str.upper().isin(['', 'N/A', 'NONE', 'NAN'])
+        if valid_district_mask.any():
+            by_dist = self.df.loc[valid_district_mask].groupby('district')['price'].mean()
+            try:
+                most_expensive_district = by_dist.idxmax()
+                most_expensive_price = by_dist.max() / 1e9
+                insights.append(f"🏆 Most expensive district: {most_expensive_district} ({most_expensive_price:.2f} billion VND avg)")
+            except ValueError:
+                pass
+            try:
+                least_expensive_district = by_dist.idxmin()
+                least_expensive_price = by_dist.min() / 1e9
+                insights.append(f"💰 Most affordable district: {least_expensive_district} ({least_expensive_price:.2f} billion VND avg)")
+            except ValueError:
+                pass
         
-        least_expensive_district = self.df.groupby('district')['price'].mean().idxmin()
-        least_expensive_price = self.df.groupby('district')['price'].mean().min() / 1e9
-        insights.append(f"💰 Most affordable district: {least_expensive_district} ({least_expensive_price:.2f} billion VND avg)")
-        
-        # Bedroom insights
-        most_common_bedrooms = self.df['bedrooms'].mode().iloc[0]
-        insights.append(f"🛏️ Most common number of bedrooms: {most_common_bedrooms}")
+        # Bedroom insights (exclude 0)
+        bedrooms_num = pd.to_numeric(self.df.get('bedrooms'), errors='coerce')
+        bedrooms_valid = bedrooms_num[bedrooms_num > 0]
+        if len(bedrooms_valid) > 0:
+            most_common_bedrooms = bedrooms_valid.mode().iloc[0]
+            insights.append(f"🛏️ Most common number of bedrooms: {int(most_common_bedrooms)}")
+        else:
+            insights.append("🛏️ Bedrooms: no valid records (>0)")
         
         # Data quality insights
         total_records = len(self.df)
